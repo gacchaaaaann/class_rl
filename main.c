@@ -5,10 +5,16 @@
 #define NUM_STATE 6 /* 0(start)を除いた環境の状態数 */
 #define NUM_TRIAL 3 /* 試行回数 */
 
+#define ALPHA 0.1
+#define GAMMA 0.9
+
+double max_Q(int state);
+
 int main(){
   int i,j;
   int now_state,now_act,next_state;
   double reward;
+  double Q[NUM_STATE+1][2];
 
   /* 1次元経路問題の環境作成 */
   createEnv(NUM_STATE);
@@ -42,12 +48,14 @@ int main(){
 	    reward = rewardFunction(now_state,now_act, next_state);
 
       /* 学習 */
+      Q[now_state][now_act] = Q[now_state][now_act] + ALPHA*(reward + GAMMA*max_Q(next_state) - Q[now_state][now_act]);
 
       /* 結果の表示 */
 	    printf("現状態:%3d\t", now_state);
 	    printf("現行動:%3d\t", now_act);
   		printf("次状態:%3d\t", next_state);
   		printf("報酬:%lf\n", reward);
+      printf("Q[%3d][%3d]=%lf\n", now_state, now_act, Q[now_state][now_act]);
   		/* 結果を見えやすくするための改行 */
   		printf("\n\n");
 	  }
@@ -60,4 +68,12 @@ int main(){
   destroyEnv();
   destroyRewardFunction();
   return 0;
+}
+
+
+
+double max_Q(int state[]){
+
+  return state[0]>state[1] ? state[0] : state[1];
+  
 }
