@@ -8,13 +8,18 @@
 #define ALPHA 0.1
 #define GAMMA 0.9
 
-double max_Q(int state);
+double max_Q(double state[]);
 
 int main(){
   int i,j;
   int now_state,now_act,next_state;
   double reward;
   double Q[NUM_STATE+1][2];
+
+  for(int i=0; i<=NUM_STATE; i++){
+    Q[i][0] = 0;
+    Q[i][1] = 0;
+  }
 
   /* 1次元経路問題の環境作成 */
   createEnv(NUM_STATE);
@@ -48,7 +53,7 @@ int main(){
 	    reward = rewardFunction(now_state,now_act, next_state);
 
       /* 学習 */
-      Q[now_state][now_act] = Q[now_state][now_act] + ALPHA*(reward + GAMMA*max_Q(next_state) - Q[now_state][now_act]);
+      Q[now_state][now_act] = Q[now_state][now_act] + ALPHA*(reward + GAMMA*max_Q(Q[next_state]) - Q[now_state][now_act]);
 
       /* 結果の表示 */
 	    printf("現状態:%3d\t", now_state);
@@ -62,6 +67,13 @@ int main(){
 
     printf("ゴール到達！\n");
     printf("ゴール到達までの行動回数:%d\n\n",j-1);
+
+    for(int i=0; i<=NUM_STATE; i++){
+      printf("%lf %lf\n", Q[i][0], Q[i][1]);
+    }
+
+    printf("\n\n");
+      
   }
 
   /* 1次元経路問題の環境終了 */
@@ -72,7 +84,7 @@ int main(){
 
 
 
-double max_Q(int state[]){
+double max_Q(double state[]){
 
   return state[0]>state[1] ? state[0] : state[1];
   
