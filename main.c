@@ -1,3 +1,5 @@
+// gcc -o HOGE main.c env-one_dimension_space.c reward_function.c
+
 #include <stdio.h>
 #include "env-one_dimension_space.h"
 #include "reward_function.h"
