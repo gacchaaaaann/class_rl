@@ -1,9 +1,10 @@
-// gcc -o HOGE e_main.c env-one_dimension_space.c reward_function.c
+// gcc -o HOGE -DSFMT_MEXP=19937 e_main.c SFMT/SFMT.c env-one_dimension_space.c reward_function.c
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "env-one_dimension_space.h"
 #include "reward_function.h"
+#include "SFMT/SFMT.h"
 
 #define NUM_STATE 6 /* 0(start)を除いた環境の状態数 */
 #define NUM_TRIAL 6 /* 試行回数 */
@@ -16,10 +17,13 @@ double max_Q(double state[]); //double一次元配列(要素数2)の最大値を
 
 int main(){
 
-  srand(17024124);
+  sfmt_t sfmt;
 
-  int i,j,ran_i;
+  sfmt_init_gen_rand(&sfmt, 17024124);
+
+  int i,j;
   int now_state,now_act,next_state;
+  unsigned long int ran_i = sfmt_genrand_uint32(&sfmt);
   double reward,ran_d;
   double Q[NUM_STATE+1][2]; //価値関数
 
@@ -50,7 +54,7 @@ int main(){
 
 		  /* 現状態に対する行動決定 */
       ran_d = (double)rand() / (double)RAND_MAX;
-      printf("ran_d = %lf", ran_d)
+      printf("ran_d = %lf\n", ran_d);
       if(ran_d<E){
           now_act = rand() % 2;
 
@@ -81,7 +85,7 @@ int main(){
 	    printf("現行動:%3d\t", now_act);
   		printf("次状態:%3d\t", next_state);
   		printf("報酬:%lf\n", reward);
-      printf("Q[%3d][%3d]=%lf\n", now_state, now_act, Q[now_state][now_act]); //更新した価値関数の表示
+      printf("Q[%3d][%3d]=%lf\n\n", now_state, now_act, Q[now_state][now_act]); //更新した価値関数の表示
   		/* 結果を見えやすくするための改行 */
   		printf("\n\n");
 	  }
@@ -89,9 +93,9 @@ int main(){
     printf("ゴール到達！\n");
     printf("ゴール到達までの行動回数:%d\n\n",j-1);
 
-//    for(int i=0; i<=NUM_STATE; i++){  //価値関数全体の表示
-//      printf("%lf %lf\n", Q[i][0], Q[i][1]);
-//    }
+    for(int i=0; i<=NUM_STATE; i++){  //価値関数全体の表示
+      printf("%lf %lf\n", Q[i][0], Q[i][1]);
+    }
 
     printf("\n\n");
       
