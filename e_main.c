@@ -53,14 +53,14 @@ int main(){
   		printf("現状態:%d\n", now_state);
 
 		  /* 現状態に対する行動決定 */
-      ran_d = (double)rand() / (double)RAND_MAX;
+      ran_d = sfmt_genrand_real1(&sfmt);  //0~1の乱数
       printf("ran_d = %lf\n", ran_d);
       if(ran_d<E){
-          now_act = rand() % 2;
+          now_act = sfmt_genrand_uint32(&sfmt) % 2;
 
       }else{
           if(Q[now_state][0]==Q[now_state][1]){
-              now_act = rand() % 2; 
+              now_act = sfmt_genrand_uint32(&sfmt) % 2; 
 
           }else{
               now_act = Q[now_state][0]>Q[now_state][1] ? 0 : 1;
