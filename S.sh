@@ -125,7 +125,7 @@ gnuplot -e "
   set xlabel 'Number of trials';
   set ylabel 'Number of total reward';
   set key font 'Arial,8.5';
-  plot for [a in '${A}'] for [g in '${G}'] for [t in '${T}'] 'S/s_100_'.a.'_'.g.'_'.t.'.dat' title '{/Symbol a}=0.'.a.' {/Symbol g}=0.'.g.' {/Symbol t}='.t with line;
+  plot for [a in '${A}'] for [g in '${G}'] for [t in '${T}'] 'S/s_100_'.a.'_'.g.'_'.t.'.dat' u 1:3 title '{/Symbol a}=0.'.a.' {/Symbol g}=0.'.g.' {/Symbol t}='.t with line;
   pause -1;
   set terminal pngcairo enhanced;
   set output 'PNG/S/TOTAL_R.png';
