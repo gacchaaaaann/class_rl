@@ -1,7 +1,7 @@
-// gcc -o HOGE -DSFMT_MEXP=19937 e_main.c SFMT/SFMT.c env-one_dimension_space.c reward_function.c
+// gcc -o HOGE main.c env-one_dimension_space.c reward_function.c
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <math.h>
 #include "env-one_dimension_space.h"
 #include "reward_function.h"
 #include "SFMT/SFMT.h"
@@ -11,20 +11,20 @@
 
 #define ALPHA 0.1 //パラメータα
 #define GAMMA 0.9 //パラメータγ
-#define E 0.05 //パラメータε
+#define TAU 0.3 //パラメータτ
 
 double max_Q(double state[]); //double一次元配列(要素数2)の最大値を返す
+int softmax(int state, double Q[][2], sfmt_t *sfmt); //softmax法で行動を選択する
 
 int main(){
-
-  sfmt_t sfmt; //sfmt実体の生成
-
-  sfmt_init_gen_rand(&sfmt, 17024124);
-
   int i,j;
   int now_state,now_act,next_state;
-  double reward,total_reward=0,ran_d;
+  double reward, total_reward;
   double Q[NUM_STATE+1][2]; //価値関数
+
+  sfmt_t sfmt;
+  sfmt_init_gen_rand(&sfmt, 17024124);
+
 
   for(int i=0; i<=NUM_STATE; i++){  //価値関数の初期化(NUM_STATEの変更に対応するため，配列定義時ではなく，改めてfor文を回す)
     Q[i][0] = 0;
@@ -41,8 +41,7 @@ int main(){
 
     /* エージェントを初期状態にする */
     setStartPos();
-    
-    /* 報酬の総和を0に初期化する */
+
     total_reward = 0;
 
 	  /* j行動 */
@@ -54,23 +53,9 @@ int main(){
   		//printf("--%3d試行---%3d行動-------\n",i,j);
   		//printf("現状態:%d\n", now_state);
 
+      now_act = softmax(now_state, Q, &sfmt);
+
 		  /* 現状態に対する行動決定 */
-      ran_d = sfmt_genrand_real1(&sfmt);  //0~1の乱数
-      //printf("ran_d = %lf\n", ran_d);
-      if(ran_d<E){  //Eの確率で前者を実行
-          now_act = sfmt_genrand_uint32(&sfmt) % 2; //ランダムで次の行動を選ぶ
-
-      }else{
-          if(Q[now_state][0]==Q[now_state][1]){ //価値関数が同じ時，前者
-              now_act = sfmt_genrand_uint32(&sfmt) % 2; //ランダムで次の行動を選ぶ
-
-          }else{
-              now_act = Q[now_state][0]>Q[now_state][1] ? 0 : 1;  //価値関数が大きい方を選ぶ
-              
-          }  
-      }
-
-  		//printf("行動番号の入力[0,1]:%d\n\n", now_act);
   		//printf("-----------結果-----------\n");
 
       /* 現行動(とそれによって次状態に変化) */
@@ -88,22 +73,23 @@ int main(){
 	    //printf("現行動:%3d\t", now_act);
   		//printf("次状態:%3d\t", next_state);
   		//printf("報酬:%lf\n", reward);
-      //printf("Q[%3d][%3d]=%lf\n\n", now_state, now_act, Q[now_state][now_act]); //更新した価値関数の表示
+      //printf("Q[%3d][%3d]=%lf\n", now_state, now_act, Q[now_state][now_act]); //更新した価値関数の表示
   		/* 結果を見えやすくするための改行 */
   		//printf("\n\n");
 	  }
 
     //printf("ゴール到達！\n");
     //printf("ゴール到達までの行動回数:%d\n\n",j-1);
-    
 
-    //結果の出力(データをまとめる用)(試行数 行動回数 報酬の総和 価値関数((NUM_STATE+1)*2)
-    printf("%d %d %lf",i,j-1,total_reward);
+//    for(int i=0; i<=NUM_STATE; i++){  //価値関数全体の表示
+//      printf("%lf %lf\n", Q[i][0], Q[i][1]);
+//    }
+
+    printf("%d %d %lf ",  i, j-1, total_reward); 
 
     for(int i=0; i<=NUM_STATE; i++){  //価値関数全体の表示
-      printf(" %lf %lf", Q[i][0], Q[i][1]);
+      printf("%lf %lf ",  Q[i][0], Q[i][1]);
     }
-    /**/
 
     printf("\n");
       
@@ -121,4 +107,16 @@ double max_Q(double state[]){ //double一次元配列(要素数2)の最大値を
 
   return state[0]>state[1] ? state[0] : state[1];
   
+}
+
+
+
+int softmax(int state, double Q[][2], sfmt_t *sfmt){ //softmax法で行動を選択する
+
+  double e0 = exp(Q[state][0]/TAU);
+  double e1 = exp(Q[state][1]/TAU);
+  double p = e0 / (e0+e1);
+
+  return sfmt_genrand_real1(sfmt)<p ? 0 : 1;
+    
 }
